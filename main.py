@@ -8,7 +8,8 @@ scr_height = 550
 scr = pygame.display.set_mode((scr_width, scr_height))
 pygame.display.set_caption("Rogue Like Platformer")
 ticks = pygame.time.Clock()
-rooom=[
+placeholder=[]
+rooom2=[
     [["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"]],
     [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
     [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
@@ -17,31 +18,53 @@ rooom=[
     [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
     [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
     [["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["D"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
+    [["D",1,[placeholder,[8,16]]],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
     [["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
     [["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"]]
 ]
+#11x17
+rooom1=[
+    [["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"]],
+    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
+    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
+    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
+    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
+    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
+    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
+    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"]],
+    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["D",1,[rooom2,[8,0]]]],
+    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"]],
+    [["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"]]
+]
+rooom2[8][0][2][0] = rooom1
 class Room(pygame.sprite.Sprite):
     def __init__(self,room_grid):
         super(Room,self).__init__()
         self.room_grid=room_grid
         self.room_surfaces=pygame.sprite.Group()
+        self.door_locs = []
         for y in range(11):
             for x in range(20):
                 #i could change it so it is like the door and the width and height are stored in the list
-                if rooom[y][x][0]=="S":
-                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,50,"SURFACE"))
-                elif rooom[y][x][0]=="D":
-                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,150,"DOOR"))
-
+                if room_grid[y][x][0]=="S":
+                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,50,"SURFACE",[-1,[0,0]]))
+                elif room_grid[y][x][0]=="D":
+                    self.door_locs.append([self.room_grid[y][x][1],[self.room_grid,[y,x]],[self.room_grid[y][x][2][0],self.room_grid[y][x][2][1]]])
+                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,150,"DOOR",[self.dooddr_locs[-1][0],self.door_locs[-1][1][1]]))
+                    #when generating the maze make a overarching door_locs, 
+                    #make the 2nd slot and 3rd slot both lists that are 2 in length and contain first the room and 2nd a list with the location
+                    #and check if the door number already exsists
+                    
+                    
 class Surfaces(pygame.sprite.Sprite):
-    def __init__(self,pos_x,pos_y,width,height,type):
+    def __init__(self,pos_x,pos_y,width,height,type,door_info):
         super(Surfaces,self).__init__()
         self.type = type
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.width = width
         self.height = height
+        self.door_id = door_info
         if self.type == "SURFACE":
             self.color = (128,128,128,255)
         elif self.type == "SPIKE":
@@ -57,13 +80,9 @@ class Surfaces(pygame.sprite.Sprite):
         self.rect.centery = self.pos_y
         self.objects_connected = []
     def activate(self):
-        if len(self.objects_connected) > 0:
+        if self.objects_connected != []:
             if self.type == "DOOR":
-                print("pp")
-                for i in self.objects_connected:
-                    self.objects_connected[i].rect.centerx = 500
-                    self.objects_connected[i].rect.centery = 275
-
+                switch_room(self.door_id)
 class Player(pygame.sprite.Sprite):
     def __init__(self,pos_x,pos_y,width,height):
         super(Player,self).__init__()
@@ -82,6 +101,7 @@ class Player(pygame.sprite.Sprite):
         self.active_jump = False
         self.grav_amt = 1
         self.grav_inc = 0.25
+        self.collided = False
         self.collide_left = False
         self.collide_right = False
         self.collide_down = False
@@ -117,98 +137,65 @@ class Player(pygame.sprite.Sprite):
             self.jump_amt -= self.grav_amt*2
             if self.jump_amt <= 0:
                 self.jumping = False
-        elif (self.jumping == True) and (self.collide_up == True):
-            self.jumping = False
-            self.active_jump = False   
     def collide(self,group):
-        left_collided = 0
-        right_collided = 0
-        up_collided = 0
-        down_collided = 0
+        self.collide_left = False
+        self.collide_right = False
+        self.collide_up = False
+        self.collide_down = False
+        self.collided = False
         for obj in group:
-            if obj.rect.collidepoint(self.rect.centerx-self.width/2+1,self.rect.centery):
-                left_collided += 1
-                if self not in obj.objects_connected:
-                    print("pppp")
-                    obj.objects_connected.append(self)
-            else:
-                try:
-                    obj.objects_connected.remove(self)
-                except:
-                    pass
-            if obj.rect.collidepoint(self.rect.centerx+self.width/2-1,self.rect.centery):
-                right_collided += 1
-                if self not in obj.objects_connected:
-                    obj.objects_connected.append(self)
-            else:
-                try:
-                    obj.objects_connected.remove(self)
-                except:
-                    pass
-            if obj.rect.collidepoint(self.rect.centerx,self.rect.centery-self.height/2+1):
-                up_collided += 1
-                if self not in obj.objects_connected:
-                    obj.objects_connected.append(self)
-            else:
-                try:
-                    obj.objects_connected.remove(self)
-                except:
-                    pass
-            if obj.rect.collidepoint(self.rect.centerx,self.rect.centery+self.height/2-1):
-                down_collided +=1
+            cld = False
+            #left
+            if obj.rect.collidepoint(self.rect.centerx-self.width/2-2,self.rect.centery):
+                self.collide_left = True
+                cld = True
+            #right
+            if obj.rect.collidepoint(self.rect.centerx+self.width/2+2,self.rect.centery):
+                self.collide_right = True
+                cld = True
+            #up
+            if obj.rect.collidepoint(self.rect.centerx,self.rect.centery-self.height/2-2):
+                self.collide_up = True
+                cld = True
+                self.jumping = False
+                self.active_jump = False   
+            #down
+            if obj.rect.collidepoint(self.rect.centerx,self.rect.centery+self.height/2+2):
+                self.collide_down = True
+                cld = True
+                self.grav_amt = 1
+            if cld == True:
+                self.collided = True
                 if self not in obj.objects_connected:
                     obj.objects_connected.append(self)
-            else:
-                try:
-                    obj.objects_connected.remove(self)
-                except:
-                    pass
-        if left_collided == 0:
-            self.collide_left = False
-        else:
-            self.collide_left = True
-        if right_collided == 0:
-            self.collide_right = False
-        else:
-            self.collide_right = True
-        if up_collided == 0:
-            self.collide_up = False
-        else:
-            self.collide_up = True
-        if down_collided == 0:
-            self.collide_down = False
-        else:
-            self.collide_down = True
+            elif self in obj.objects_connected:
+                obj.objects_connected.remove(self)
     def gravity(self):
         if (self.jumping == False) and (self.collide_down == False):
             self.rect.centery += self.grav_amt
             self.grav_amt += self.grav_inc
-# test_platform = pygame.sprite.Group()
-# test_platform.add(Surfaces(500,525,1000,50,"SURFACE"))
-# test_platform.add(Surfaces(500,25,1000,50,"SURFACE"))
-# #wall
-# test_platform.add(Surfaces(25,200,50,300,"SURFACE"))
-# test_platform.add(Surfaces(975,200,50,300,"SURFACE"))
-# #door
-# test_platform.add(Surfaces(25,425,50,150,"DOOR"))
-# test_platform.add(Surfaces(975,425,50,150,"DOOR"))
+def switch_room(door_num):
+    # if active_room == r1:
+    #    active_room = r2 
+    # elif active_room == r1:
+    #    active_room = r2
+    active_room = r2
+    for y in len(active_room.room_grid):
+        for x in len(active_room.room_grid[y]):
+            if (active_room.room_grid[y][x][0]=="D") and (active_room.room_grid[y][x][1]==door_num):
+                for p in ply:
+                    if x==0:
+                        p.rect.centerx=75+(50*x)
+                        p.rect.centery=25+(50*y)
+                    elif x==16:
+                        p.rect.centerx=75+(50*x)
+                        p.rect.centery=25+(50*y)
+r1 = Room(rooom1)
+r2 = Room(rooom2)
 
-# clr="SPIKE"
-# for y in range(9):
-#     if clr=="SPIKE":
-#         clr=""
-#     else:
-#         clr="SPIKE"
-#     for x in range(18):
-#         test_platform.add(Surfaces(75+(50*(x)),(75+(50*(y))),50,50,clr))
-#         if clr=="SPIKE":
-#             clr=""
-#         else:
-#             clr="SPIKE"
-        
-pp=Room(rooom)
+active_room = r1
 
-ply=pygame.sprite.Group()
+ply = pygame.sprite.Group()
 ply.add(Player(100,300,50,100))
 
 run = True
@@ -219,8 +206,10 @@ while run:
             run = False
     scr.fill((255,255,255))
     
+    active_room.room_surfaces.draw(scr)
+
     for player in ply:
-        player.collide(pp.room_surfaces)
+        player.collide(active_room.room_surfaces)
         player.move(keys)
         player.gravity()
 
@@ -229,10 +218,10 @@ while run:
 
     # test_platform.draw(scr)
 
-    for plat in pp.room_surfaces:
-        plat.activate()
-
-    pp.room_surfaces.draw(scr)
+    for plat in active_room.room_surfaces:
+        for player in ply:
+            if player.collided == True:
+                plat.activate()
 
     pygame.display.flip()
     ticks.tick(60)
