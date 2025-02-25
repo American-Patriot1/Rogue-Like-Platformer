@@ -8,49 +8,99 @@ scr_height = 550
 scr = pygame.display.set_mode((scr_width, scr_height))
 pygame.display.set_caption("Rogue Like Platformer")
 ticks = pygame.time.Clock()
-placeholder=[]
-rooom2=[
-    [["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["D",1,[placeholder,[8,16]]],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"]]
-]
-#11x17
-rooom1=[
-    [["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["S"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["D",1,[rooom2,[8,0]]]],
-    [["S"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"],["_"]],
-    [["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"],["S"]]
-]
-rooom2[8][0][2][0] = rooom1
+
+class Maze(pygame.sprite.Sprite):
+    def __init__(self,min_rooms,max_doors,player):
+        super(Maze,self).__init__()
+        self.maze=pygame.sprite.Group()
+        room_id=0
+        total_doors=0
+        self.player=player
+        unended_doors=[]
+        while (min_rooms!=0) and (len(unended_doors)!=0):
+            if min_rooms==0:
+                max_doors=1
+            door_locs = [[2,0],[5,0],[8,0],[2,1],[5,1],[8,1]]
+            if room_id == 0:
+                door_locs = [[5,1]]
+            amt_of_doors=0
+            fixed_door = False
+            room=[]
+            for y in range(11):
+                room.append([])
+                for x in range(20):
+                    room[y].append([])
+                    if (unended_doors!=0) and (fixed_door == False):
+                        for i in unended_doors:
+                            if [y,x] in unended_doors[i]:
+                                room[y+1][x].append("_")
+                                room[y][x].append("D",unended_doors[i][1],unended_doors[i][2])
+                                room[y-1][x].append("_")
+                                if x==0:
+                                    side=19
+                                else:
+                                    side=0
+                                for b in self.maze:
+                                    if b.id==unended_doors[i][2]:
+                                        b.roomgrid[y][side].append(room_id)
+                                fixed_door=True
+                                unended_doors.pop(i)
+                                amt_of_doors+=1
+                                door_locs.remove([y,x])
+                    elif (min_rooms>0) and ([y,x] in door_locs) and (amt_of_doors < max_doors):
+                        if (fixed_door==True) or ((unended_doors==0) or ((max_doors-amt_of_doors)>=2)):
+                            room[y+1][x].append("_")
+                            room[y][x].append("D",total_doors)
+                            room[y-1][x].append("_")
+                            if x==0:
+                                side=19
+                            else:
+                                side=0
+                            unended_doors.append([[y,side],total_doors,room_id])
+                            amt_of_doors += 1
+                            total_doors += 1
+                    elif y == (0 or 10) and (room[y][x] == []):
+                        room[y][x].append("S")
+                    elif x == (0 or 19) and (room[y][x] == []):
+                        room[y][x].append("S")
+                    elif  (room[y][x] == []):
+                        room[y][x].append("_")
+            print("TTTTTTTTTTTTTTTTTTTTTTTTTTTT")
+            print(room)
+            self.maze.add(Room(room,room_id))
+            min_rooms+=1
+        self.active_room=0
+    def switch_room(self,id,room):
+        for r in self.maze:
+            if r.id==room:
+                for y in len(r.room_grid):
+                    for x in len(r.room_grid[y]):
+                        if (r.room_grid[y][x][0]=="D") and (r.room_grid[y][x][1]==id):
+                            if x==0:
+                                self.player.rect.centerx=75+(50*x)
+                                self.player.rect.centery=25+(50*y)
+                            elif x==16:
+                                self.player.rect.centerx=75+(50*x)
+                                self.player.rect.centery=25+(50*y)
+                            self.active_room=room
+    def determine_active_room(self):
+        for r in self.maze:
+            if r.id==self.active_room:
+                return r
+            
 class Room(pygame.sprite.Sprite):
-    def __init__(self,room_grid):
+    def __init__(self,room_grid,id):
         super(Room,self).__init__()
         self.room_grid=room_grid
         self.room_surfaces=pygame.sprite.Group()
-        self.door_locs = []
+        self.id=id
         for y in range(11):
             for x in range(20):
                 #i could change it so it is like the door and the width and height are stored in the list
                 if room_grid[y][x][0]=="S":
-                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,50,"SURFACE",[-1,[0,0]]))
+                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,50,"SURFACE",-1))
                 elif room_grid[y][x][0]=="D":
-                    self.door_locs.append([self.room_grid[y][x][1],[self.room_grid,[y,x]],[self.room_grid[y][x][2][0],self.room_grid[y][x][2][1]]])
-                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,150,"DOOR",[self.dooddr_locs[-1][0],self.door_locs[-1][1][1]]))
+                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,150,"DOOR",[self.room_grid[y][x][1],self.room_grid[y][x][2]]))
                     #when generating the maze make a overarching door_locs, 
                     #make the 2nd slot and 3rd slot both lists that are 2 in length and contain first the room and 2nd a list with the location
                     #and check if the door number already exsists
@@ -64,7 +114,8 @@ class Surfaces(pygame.sprite.Sprite):
         self.pos_y = pos_y
         self.width = width
         self.height = height
-        self.door_id = door_info
+        self.door_id=door_info[0]
+        self.other_room=door_info[1]
         if self.type == "SURFACE":
             self.color = (128,128,128,255)
         elif self.type == "SPIKE":
@@ -82,7 +133,7 @@ class Surfaces(pygame.sprite.Sprite):
     def activate(self):
         if self.objects_connected != []:
             if self.type == "DOOR":
-                switch_room(self.door_id)
+                maze1.switch_room(self.door_id,self.other_room)
 class Player(pygame.sprite.Sprite):
     def __init__(self,pos_x,pos_y,width,height):
         super(Player,self).__init__()
@@ -174,29 +225,11 @@ class Player(pygame.sprite.Sprite):
         if (self.jumping == False) and (self.collide_down == False):
             self.rect.centery += self.grav_amt
             self.grav_amt += self.grav_inc
-def switch_room(door_num):
-    # if active_room == r1:
-    #    active_room = r2 
-    # elif active_room == r1:
-    #    active_room = r2
-    active_room = r2
-    for y in len(active_room.room_grid):
-        for x in len(active_room.room_grid[y]):
-            if (active_room.room_grid[y][x][0]=="D") and (active_room.room_grid[y][x][1]==door_num):
-                for p in ply:
-                    if x==0:
-                        p.rect.centerx=75+(50*x)
-                        p.rect.centery=25+(50*y)
-                    elif x==16:
-                        p.rect.centerx=75+(50*x)
-                        p.rect.centery=25+(50*y)
-r1 = Room(rooom1)
-r2 = Room(rooom2)
-
-active_room = r1
 
 ply = pygame.sprite.Group()
 ply.add(Player(100,300,50,100))
+
+maze1 = Maze(2,1,ply)
 
 run = True
 while run:
@@ -206,10 +239,13 @@ while run:
             run = False
     scr.fill((255,255,255))
     
-    active_room.room_surfaces.draw(scr)
+    act_room=maze1.determine_active_room()
+    print
+
+    act_room.room_surfaces.draw(scr)
 
     for player in ply:
-        player.collide(active_room.room_surfaces)
+        player.collide(act_room.room_surfaces)
         player.move(keys)
         player.gravity()
 
@@ -218,7 +254,7 @@ while run:
 
     # test_platform.draw(scr)
 
-    for plat in active_room.room_surfaces:
+    for plat in act_room.room_surfaces:
         for player in ply:
             if player.collided == True:
                 plat.activate()
