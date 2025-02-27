@@ -17,41 +17,64 @@ class Maze(pygame.sprite.Sprite):
         total_doors=0
         self.player=player
         unended_doors=[]
-        while (min_rooms!=0) and (len(unended_doors)!=0):
+        count=1
+        while ((min_rooms!=0) or (len(unended_doors)!=0)) and (count<=2):
             if min_rooms==0:
                 max_doors=1
-            door_locs = [[2,0],[5,0],[8,0],[2,1],[5,1],[8,1]]
+            door_locs = [[2,0],[5,0],[8,0],[2,19],[5,19],[8,19]]
             if room_id == 0:
-                door_locs = [[5,1]]
+                door_locs = [[5,19]]
             amt_of_doors=0
             fixed_door = False
             room=[]
+            door_holdover=[]
+            created_new_door=False
             for y in range(11):
                 room.append([])
                 for x in range(20):
                     room[y].append([])
-                    if (unended_doors!=0) and (fixed_door == False):
-                        for i in unended_doors:
+                    if [y,x] in door_holdover:
+                        door_holdover.remove([y,x])
+                        room[y][x].append("_")
+                    elif (len(unended_doors)!=0) and (fixed_door == False) and (created_new_door==False):
+                        # print(1)
+                        for i in range(len(unended_doors)):
                             if [y,x] in unended_doors[i]:
-                                room[y+1][x].append("_")
-                                room[y][x].append("D",unended_doors[i][1],unended_doors[i][2])
+                                room[y][x].append("D")
+                                room[y][x].append(unended_doors[i][1])
+                                room[y][x].append(unended_doors[i][2])
                                 room[y-1][x].append("_")
+                                door_holdover.append([y+1,x])
                                 if x==0:
                                     side=19
                                 else:
                                     side=0
                                 for b in self.maze:
                                     if b.id==unended_doors[i][2]:
-                                        b.roomgrid[y][side].append(room_id)
+                                        b.room_grid[y][side].append(room_id)
                                 fixed_door=True
                                 unended_doors.pop(i)
                                 amt_of_doors+=1
+                                # print(door_locs)
+                                # print([y,x])
                                 door_locs.remove([y,x])
+                            elif ((y == 0) or (y== 10)) and (room[y][x] == []):
+                                room[y][x].append("S")
+                            elif ((x == 0) or (x==19)) and (room[y][x] == []):
+                                room[y][x].append("S")
+                            elif  (room[y][x] == []):
+                                room[y][x].append("_")
                     elif (min_rooms>0) and ([y,x] in door_locs) and (amt_of_doors < max_doors):
-                        if (fixed_door==True) or ((unended_doors==0) or ((max_doors-amt_of_doors)>=2)):
-                            room[y+1][x].append("_")
-                            room[y][x].append("D",total_doors)
-                            room[y-1][x].append("_")
+                        # print(2)
+                        if ((fixed_door==False) and (len(unended_doors)==0)) or ((fixed_door==True) and ((len(unended_doors)==0) or ((max_doors-amt_of_doors)>=1))):
+                            if (y==5) and (x==10):
+                                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                            room[y][x].append("D")
+                            room[y][x].append(total_doors)
+                            room[y][x].append(room_id)
+                            room[y-1][x][0]="_"
+                            door_holdover.append([y+1,x])
+                            [y-1,x]
                             if x==0:
                                 side=19
                             else:
@@ -59,22 +82,38 @@ class Maze(pygame.sprite.Sprite):
                             unended_doors.append([[y,side],total_doors,room_id])
                             amt_of_doors += 1
                             total_doors += 1
-                    elif y == (0 or 10) and (room[y][x] == []):
+                            created_new_door=True
+                        elif ((y == 0) or (y== 10)) and (room[y][x] == []):
+                            room[y][x].append("S")
+                        elif ((x == 0) or (x==19)) and (room[y][x] == []):
+                            room[y][x].append("S")
+                        elif  (room[y][x] == []):
+                            room[y][x].append("_")
+                    elif ((y == 0) or (y== 10)) and (room[y][x] == []):
+                        # print(3)
                         room[y][x].append("S")
-                    elif x == (0 or 19) and (room[y][x] == []):
+                    elif ((x == 0) or (x==19)) and (room[y][x] == []):
+                        # print(4)
                         room[y][x].append("S")
                     elif  (room[y][x] == []):
+                        # print(5)
                         room[y][x].append("_")
-            print("TTTTTTTTTTTTTTTTTTTTTTTTTTTT")
-            print(room)
+                    else:
+                        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                        room[y][x].append("_")
+            # print(room)
             self.maze.add(Room(room,room_id))
+            room_id+=1
             min_rooms+=1
+            # print(count)
+            count+=1
         self.active_room=0
     def switch_room(self,id,room):
+        print(self.player.jump_amt)
         for r in self.maze:
             if r.id==room:
-                for y in len(r.room_grid):
-                    for x in len(r.room_grid[y]):
+                for y in range(len(r.room_grid)):
+                    for x in range(len(r.room_grid[y])):
                         if (r.room_grid[y][x][0]=="D") and (r.room_grid[y][x][1]==id):
                             if x==0:
                                 self.player.rect.centerx=75+(50*x)
@@ -84,6 +123,7 @@ class Maze(pygame.sprite.Sprite):
                                 self.player.rect.centery=25+(50*y)
                             self.active_room=room
     def determine_active_room(self):
+        # print(self.maze)
         for r in self.maze:
             if r.id==self.active_room:
                 return r
@@ -94,8 +134,12 @@ class Room(pygame.sprite.Sprite):
         self.room_grid=room_grid
         self.room_surfaces=pygame.sprite.Group()
         self.id=id
-        for y in range(11):
-            for x in range(20):
+        # print(room_grid)
+        for y in range(len(room_grid)):
+            for x in range(len(room_grid[y])):
+                # print(y)
+                # print(x)
+                # print(room_grid[y][x])
                 #i could change it so it is like the door and the width and height are stored in the list
                 if room_grid[y][x][0]=="S":
                     self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,50,"SURFACE",-1))
@@ -114,8 +158,9 @@ class Surfaces(pygame.sprite.Sprite):
         self.pos_y = pos_y
         self.width = width
         self.height = height
-        self.door_id=door_info[0]
-        self.other_room=door_info[1]
+        if door_info!=-1:
+            self.door_id=door_info[0]
+            self.other_room=door_info[1]
         if self.type == "SURFACE":
             self.color = (128,128,128,255)
         elif self.type == "SPIKE":
@@ -229,7 +274,8 @@ class Player(pygame.sprite.Sprite):
 ply = pygame.sprite.Group()
 ply.add(Player(100,300,50,100))
 
-maze1 = Maze(2,1,ply)
+for p in ply:
+    maze1 = Maze(2,1,p)
 
 run = True
 while run:
@@ -240,7 +286,7 @@ while run:
     scr.fill((255,255,255))
     
     act_room=maze1.determine_active_room()
-    print
+    # print(act_room)
 
     act_room.room_surfaces.draw(scr)
 
