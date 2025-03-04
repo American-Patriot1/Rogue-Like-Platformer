@@ -1,7 +1,5 @@
 import pygame #from pygame.org - https://www.pygame.org/news
-import sys
-import random
-import math
+import sys# from https://docs.python.org/3/library/sys.html
 pygame.init()
 scr_width = 1000
 scr_height = 550
@@ -37,7 +35,6 @@ class Maze(pygame.sprite.Sprite):
                         door_holdover.remove([y,x])
                         room[y][x].append("_")
                     elif (len(unended_doors)!=0) and (fixed_door == False) and (created_new_door==False):
-                        # print(1)
                         for i in range(len(unended_doors)):
                             if [y,x] in unended_doors[i]:
                                 room[y][x].append("D")
@@ -51,12 +48,15 @@ class Maze(pygame.sprite.Sprite):
                                     side=0
                                 for b in self.maze:
                                     if b.id==unended_doors[i][2]:
-                                        b.room_grid[y][side].append(room_id)
+                                        b.room_grid[y][side][2]=room_id
+                                        for a in b.room_surfaces:
+                                            try:
+                                                a.other_room=room_id
+                                            except:
+                                                pass
                                 fixed_door=True
                                 unended_doors.pop(i)
                                 amt_of_doors+=1
-                                # print(door_locs)
-                                # print([y,x])
                                 door_locs.remove([y,x])
                             elif ((y == 0) or (y== 10)) and (room[y][x] == []):
                                 room[y][x].append("S")
@@ -65,10 +65,7 @@ class Maze(pygame.sprite.Sprite):
                             elif  (room[y][x] == []):
                                 room[y][x].append("_")
                     elif (min_rooms>0) and ([y,x] in door_locs) and (amt_of_doors < max_doors):
-                        # print(2)
                         if ((fixed_door==False) and (len(unended_doors)==0)) or ((fixed_door==True) and ((len(unended_doors)==0) or ((max_doors-amt_of_doors)>=1))):
-                            if (y==5) and (x==10):
-                                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                             room[y][x].append("D")
                             room[y][x].append(total_doors)
                             room[y][x].append(room_id)
@@ -90,40 +87,32 @@ class Maze(pygame.sprite.Sprite):
                         elif  (room[y][x] == []):
                             room[y][x].append("_")
                     elif ((y == 0) or (y== 10)) and (room[y][x] == []):
-                        # print(3)
                         room[y][x].append("S")
                     elif ((x == 0) or (x==19)) and (room[y][x] == []):
-                        # print(4)
                         room[y][x].append("S")
                     elif  (room[y][x] == []):
-                        # print(5)
                         room[y][x].append("_")
                     else:
-                        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                         room[y][x].append("_")
-            # print(room)
             self.maze.add(Room(room,room_id))
             room_id+=1
             min_rooms+=1
-            # print(count)
             count+=1
         self.active_room=0
     def switch_room(self,id,room):
-        print(self.player.jump_amt)
         for r in self.maze:
             if r.id==room:
                 for y in range(len(r.room_grid)):
                     for x in range(len(r.room_grid[y])):
                         if (r.room_grid[y][x][0]=="D") and (r.room_grid[y][x][1]==id):
                             if x==0:
-                                self.player.rect.centerx=75+(50*x)
+                                self.player.rect.centerx=80+(50*x)
                                 self.player.rect.centery=25+(50*y)
-                            elif x==16:
-                                self.player.rect.centerx=75+(50*x)
+                            elif x==19:
+                                self.player.rect.centerx=-30+(50*x)
                                 self.player.rect.centery=25+(50*y)
                             self.active_room=room
     def determine_active_room(self):
-        # print(self.maze)
         for r in self.maze:
             if r.id==self.active_room:
                 return r
@@ -134,25 +123,17 @@ class Room(pygame.sprite.Sprite):
         self.room_grid=room_grid
         self.room_surfaces=pygame.sprite.Group()
         self.id=id
-        # print(room_grid)
         for y in range(len(room_grid)):
             for x in range(len(room_grid[y])):
-                # print(y)
-                # print(x)
-                # print(room_grid[y][x])
-                #i could change it so it is like the door and the width and height are stored in the list
                 if room_grid[y][x][0]=="S":
-                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,50,"SURFACE",-1))
+                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,50,"SURFACE",-1,self.id))
                 elif room_grid[y][x][0]=="D":
-                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,150,"DOOR",[self.room_grid[y][x][1],self.room_grid[y][x][2]]))
-                    #when generating the maze make a overarching door_locs, 
-                    #make the 2nd slot and 3rd slot both lists that are 2 in length and contain first the room and 2nd a list with the location
-                    #and check if the door number already exsists
-                    
+                    self.room_surfaces.add(Surfaces(25+(50*x),25+(50*y),50,150,"DOOR",[self.room_grid[y][x][1],self.room_grid[y][x][2]],self.id))
                     
 class Surfaces(pygame.sprite.Sprite):
-    def __init__(self,pos_x,pos_y,width,height,type,door_info):
+    def __init__(self,pos_x,pos_y,width,height,type,door_info,room_in):
         super(Surfaces,self).__init__()
+        self.room_in=room_in
         self.type = type
         self.pos_x = pos_x
         self.pos_y = pos_y
@@ -241,21 +222,17 @@ class Player(pygame.sprite.Sprite):
         self.collided = False
         for obj in group:
             cld = False
-            #left
             if obj.rect.collidepoint(self.rect.centerx-self.width/2-2,self.rect.centery):
                 self.collide_left = True
                 cld = True
-            #right
             if obj.rect.collidepoint(self.rect.centerx+self.width/2+2,self.rect.centery):
                 self.collide_right = True
                 cld = True
-            #up
             if obj.rect.collidepoint(self.rect.centerx,self.rect.centery-self.height/2-2):
                 self.collide_up = True
                 cld = True
                 self.jumping = False
                 self.active_jump = False   
-            #down
             if obj.rect.collidepoint(self.rect.centerx,self.rect.centery+self.height/2+2):
                 self.collide_down = True
                 cld = True
@@ -286,7 +263,6 @@ while run:
     scr.fill((255,255,255))
     
     act_room=maze1.determine_active_room()
-    # print(act_room)
 
     act_room.room_surfaces.draw(scr)
 
@@ -298,7 +274,6 @@ while run:
     ply.draw(scr)
 
 
-    # test_platform.draw(scr)
 
     for plat in act_room.room_surfaces:
         for player in ply:
